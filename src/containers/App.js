@@ -1,23 +1,43 @@
 import React, {Component} from 'react';
+import { connect } from 'react-redux';
 import CardList from '../components/CardList';
 // import {robots} from './robots';
 import SearchBox from '../components/SearchBox';
 import Scroll from '../components/Scroll';
 import './App.css'
+import { requestRobots, setSearchField } from '../actions';
+
+const mapStateToProps = state => {
+    return {
+        searchField: state.searchRobots.searchField,
+        robots: state.requestRobots.robots,
+        isPending: state.requestRobots.isPending,
+        error: state.requestRobots.error
+        // searchField: ""
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onSearchChange: (event) => dispatch(setSearchField(event.target.value)),
+        onRequestRobots: () => dispatch(requestRobots())
+    }
+}
 
 class App extends Component {
-    constructor() {
-        super()
-        this.state = {
-            robots: [],
-            searchField: ''
-        }
-    }
+    // constructor() {
+    //     super()
+    //     this.state = {
+    //         robots: [],
+    //     }
+    // }
 
     componentDidMount() {
-        fetch('https://jsonplaceholder.typicode.com/users')
-        .then(response => response.json())
-        .then(users => this.setState({robots: users}))
+        // console.log(this.props)
+        // fetch('https://jsonplaceholder.typicode.com/users')
+        // .then(response => response.json())
+        // .then(users => this.setState({robots: users}))
+        this.props.onRequestRobots()
     }
 
     onSearchChange = (event) => {
@@ -26,13 +46,17 @@ class App extends Component {
     }
 
     render(){
-        const filteredRobots = this.state.robots.filter( robots => {
-            return robots.name.toLocaleLowerCase().includes(this.state.searchField.toLocaleLowerCase())
+        // const { robots } = this.state;
+        const { searchField, onSearchChange, robots, isPending } = this.props;
+        const filteredRobots = robots.filter( robot => {
+            return robot.name.toLocaleLowerCase().includes(searchField.toLocaleLowerCase())
         })
-        return (
+        return isPending ?
+        <h1>Loading</h1> :
+         (
             <div className='tc'>
                 <h1 className='f1'>RoboFriends</h1>
-                <SearchBox searchChange={this.onSearchChange}/>
+                <SearchBox searchChange={onSearchChange}/>
                 <Scroll>
                     <CardList robots={filteredRobots}/>
                 </Scroll>
@@ -42,4 +66,4 @@ class App extends Component {
    
 }
 
-export default App;
+export default connect(mapStateToProps, mapDispatchToProps)(App);
